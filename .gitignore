@@ -1,0 +1,8 @@
+# Ignore Git directory
+.git
+
+# Ignore Visual Studio Code directory
+.vscode
+
+# Ignore build directory
+build/
