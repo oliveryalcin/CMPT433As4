@@ -1,0 +1,55 @@
+#include "hal/pwmBuzzer"
+#include <stdio.h>
+#include <stdlib.h>
+
+
+static const char* command = "config-pin p9_22 pwm";
+static bool* isRunning; // keep track of shutdown state, initial value passed from MAIN thread during initialization
+
+
+static void run_command();
+
+void initBuzzer(){
+
+    FILE *fDutyCycle = fopen(PWM0B_DUTY_CYCLE, "w");
+    FILE *fPeriod = fopen(PWM0B_PERIOD, "w");
+    FILE *fEnable = fopen(PWM0B_DUTY_ENABLE, "w");
+
+    if (!fEnable || !fDutyCycle || !fPeriod){
+        return -1;
+    }
+    int fDutyCycleWritten = fprintf(fDutyCycle, "0");
+    int fPeriodWritten = fprintf(fPeriod, "0");
+    int fEnableWritten = fprintf(fEnable, "1");
+
+
+    if (fEnableWritten <= 0 || fDutyCycleWritten <= 0|| fPeriodWritten <= 0) {
+        perror("Unable to write to pin");
+    }
+    // Close file
+    fclose(fEnable);
+
+}
+
+
+
+
+static void run_command(){
+    // Execute the shell command (output into pipe)
+    FILE *pipe = popen(command, "r");
+    // Ignore output of the command; but consume it
+    // so we don't get an error when closing the pipe.
+    char buffer[1000];
+    while (!feof(pipe) && !ferror(pipe)) {
+        if (fgets(buffer, sizeof(buffer), pipe) == NULL)
+            break;
+        //printf("--> %s", buffer); // Uncomment for debugging
+    }
+    // Get the exit code from the pipe; non-zero is an error:
+    int exitCode = WEXITSTATUS(pclose(pipe));
+    if (exitCode != 0) {
+        perror("Unable to execute command:");
+        printf(" command: %s\n", command);
+        printf(" exit code: %d\n", exitCode);
+    }
+}

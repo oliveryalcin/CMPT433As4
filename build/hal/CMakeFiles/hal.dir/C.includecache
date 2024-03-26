@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../hal/include/hal/segDisplay.h
+stdbool.h
+-
+
+/home/owells/cmpt433/private/as4/CMPT433As4/hal/src/segDisplay.c
+stdio.h
+-
+stdlib.h
+-
+fcntl.h
+-
+unistd.h
+-
+sys/ioctl.h
+-
+linux/i2c.h
+-
+linux/i2c-dev.h
+-
+hal/segDisplay.h
+/home/owells/cmpt433/private/as4/CMPT433As4/hal/src/hal/segDisplay.h
+pthread.h
+-
+stdbool.h
+/home/owells/cmpt433/private/as4/CMPT433As4/hal/src/stdbool.h
+
