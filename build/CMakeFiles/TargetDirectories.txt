@@ -1,8 +1,0 @@
-/home/owells/cmpt433/private/as4/CMPT433As4/build/CMakeFiles/rebuild_cache.dir
-/home/owells/cmpt433/private/as4/CMPT433As4/build/CMakeFiles/edit_cache.dir
-/home/owells/cmpt433/private/as4/CMPT433As4/build/hal/CMakeFiles/rebuild_cache.dir
-/home/owells/cmpt433/private/as4/CMPT433As4/build/hal/CMakeFiles/edit_cache.dir
-/home/owells/cmpt433/private/as4/CMPT433As4/build/hal/CMakeFiles/hal.dir
-/home/owells/cmpt433/private/as4/CMPT433As4/build/app/CMakeFiles/rebuild_cache.dir
-/home/owells/cmpt433/private/as4/CMPT433As4/build/app/CMakeFiles/edit_cache.dir
-/home/owells/cmpt433/private/as4/CMPT433As4/build/app/CMakeFiles/find_the_dot.dir
