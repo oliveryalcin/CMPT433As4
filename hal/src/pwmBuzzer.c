@@ -1,8 +1,9 @@
-#include "hal/pwmBuzzer"
+#include "hal/pwmBuzzer.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
-
+/*
 static const char* command = "config-pin p9_22 pwm";
 static bool* isRunning; // keep track of shutdown state, initial value passed from MAIN thread during initialization
 
@@ -53,3 +54,4 @@ static void run_command(){
         printf(" exit code: %d\n", exitCode);
     }
 }
+*/

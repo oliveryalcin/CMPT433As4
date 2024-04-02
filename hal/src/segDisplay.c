@@ -8,6 +8,8 @@
 #include "hal/segDisplay.h"
 #include <pthread.h>
 #include "stdbool.h"
+#include "hal/utils.h"
+
 
 #define I2CDRV_LINUX_BUS1 "/dev/i2c-1" //only one that is necessary for LED
 #define I2C_DEVICE_ADDRESS 0x20
@@ -34,7 +36,6 @@ static const char* command = "config-pin P9_18 i2c & config-pin P9_17 i2c"; // I
 //static unsigned char readI2cReg(int i2cFileDesc, unsigned char regAddr);
 static int initI2cBus(char* bus, int address);
 static void writeI2cReg(int i2cFileDesc, unsigned char regAddr, unsigned char value);
-static void sleepForMs(long long delayInMs);
 static int toggleGPIOPin(const char* gpioPinDir, int state);
 static int firstDigit, secondDigit;
 static void* backgroundSegDisplayThread(); 
@@ -217,15 +218,6 @@ int cleanupSegDisplay(){
     }
 
 	return 0;
-}
-static void sleepForMs(long long delayInMs){ 
-    const long long NS_PER_MS = 1000 * 1000;
-    const long long NS_PER_SECOND = 1000000000;
-    long long delayNs = delayInMs * NS_PER_MS;
-    int seconds = delayNs / NS_PER_SECOND;
-    int nanoseconds = delayNs % NS_PER_SECOND;
-    struct timespec reqDelay = {seconds, nanoseconds};
-    nanosleep(&reqDelay, (struct timespec *) NULL);
 }
 static int initI2cBus(char* bus, int address)
 {
