@@ -41,13 +41,14 @@ int main()
 
     // Print out the state of the neoPixelState array
     for (int i = 0; i < 8; ++i) {
-        printf("Index %d: isOn=%s, isBright=%s, color=%d\n", 
+        printf("Index %d: isOn=%s, isBright=%s, 0x%08x\n", 
                i, 
                pixels[i].isOn ? "true" : "false",
                pixels[i].isBright ? "true" : "false",
                pixels[i].color);
     }
     setLeds(pixels);
+    printf("anan");
     // demonstration of 
     
     /*

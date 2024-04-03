@@ -18,16 +18,19 @@
     Configures GPIO pins for PRU 
 */ 
 
-
+static volatile void *pPruBase;
+static volatile sharedColorStruct_t *pSharedPru0;
 
 static uint32_t brightenColor(ledColors color);
 /*
     Initializes pin for PRUOUT and initializes shared struct 
 */
 void initNeoPixel(){
-    //runCommand("config-pin P8.11 pruout");
-    //pPruBase = getPruMmapAddr();
-    //pSharedPru0 = PRU0_MEM_FROM_BASE((volatile sharedColorStruct_t *)pPruBase);
+    runCommand("config-pin P8.11 pruout");
+    //runCommand("cd /sys/class/remoteproc/remoteproc1/ && echo 'start' | sudo tee ./state");
+    //runCommand("cd /mnt/remote/pru/pru-as4 && make && sudo make install_PRU0");
+    pPruBase = getPruMmapAddr();
+    pSharedPru0 = PRU0_MEM_FROM_BASE(pPruBase);
 }
 
 // Returns the bright version of the color based on the enum
@@ -35,19 +38,18 @@ uint32_t brightenColor(ledColors color) {
     
     switch (color) {
         case RED:
-            return 0x00FF0000; // Red Bright
+            return 0x00ff0000; // Red Bright
         case GREEN:
-            return 0xFF000000; // Green Bright
+            return 0xff000000; // Green Bright
         case BLUE:
-            return 0x0000FF00; // Blue Bright
+            return 0x0000ff00; // Blue Bright
         default:
             return 0x00000000;
     }
 }
 
 void setLeds(neoPixelState positions) {
-        volatile void *pPruBase = getPruMmapAddr();
-     volatile sharedColorStruct_t *pSharedPru0 = PRU0_MEM_FROM_BASE((volatile sharedColorStruct_t *)pPruBase);
+        
 
     for (int i = 0; i < STR_LEN; i++) {
         if (positions[i].isOn) {
@@ -60,19 +62,11 @@ void setLeds(neoPixelState positions) {
             }
         } else {
             // Turn off
-            printf("?");
             pSharedPru0->color[i] = 0x00000000;
         }
     }
-        // Drive it
-    for (int i = 0; i < 8; i++) {
-        // Set to RED
-        pSharedPru0->color[i] = 0x0f0f0000; 
-
-    }
-
     for (int i = 0; i < STR_LEN; i++) {
         printf("\nShared Mem after calling setLed %d: 0x%08x\n", i, pSharedPru0->color[i]);
     }
-freePruMmapAddr(pPruBase);
+    freePruMmapAddr(pPruBase); //move to shutdown function
 }

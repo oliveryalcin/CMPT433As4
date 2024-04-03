@@ -44,7 +44,7 @@ void main(void)
     // Initialize:
     for (int i = 0; i < 8; i++)
     {
-        pSharedMemStruct->color[i] = 0x0f000000;
+        pSharedMemStruct->color[i] = 0x0fff0000;
     }
 
     while (1)

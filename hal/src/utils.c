@@ -24,7 +24,7 @@ void runCommand(char *command)
     {
         if (fgets(buffer, sizeof(buffer), pipe) == NULL)
             break;
-        // printf("--> %s", buffer); // Uncomment for debugging
+         printf("--> %s", buffer); // Uncomment for debugging
     }
     // Get the exit code from the pipe; non-zero is an error:
     int exitCode = WEXITSTATUS(pclose(pipe));
