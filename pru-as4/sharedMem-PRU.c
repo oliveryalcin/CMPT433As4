@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <pru_cfg.h>
 #include "resource_table_empty.h"
-#include "../hal/sharedDataStruct.h"
+#include "sharedDataStruct.h"
 
 // Reference for shared RAM:
 // https://markayoder.github.io/PRUCookbook/05blocks/blocks.html#_controlling_the_pwm_frequency
@@ -44,7 +44,7 @@ void main(void)
     // Initialize:
     for (int i = 0; i < 8; i++)
     {
-        pSharedMemStruct->color[i] = 0x00000000;
+        pSharedMemStruct->color[i] = 0x0f000000;
     }
 
     while (1)

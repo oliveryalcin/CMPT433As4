@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 #include "hal/utils.h"
-
+#include "../pru-as4/sharedDataStruct.h"
 /* Runs a Linux command */
 void runCommand(char *command)
 {
