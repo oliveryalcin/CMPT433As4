@@ -25,12 +25,10 @@ int main()
 
     neoPixelState pixels = {0}; // Initialize all elements to 0 (false) by default
 
-    // Set the 5th index to be bright blue
     pixels[4].isOn = true;
     pixels[4].isBright = true;
     pixels[4].color = BLUE;
 
-    // Set the 4th and 6th indices to be blue but not bright
     pixels[3].isOn = true;
     pixels[3].isBright = false;
     pixels[3].color = BLUE;
@@ -39,7 +37,7 @@ int main()
     pixels[5].isBright = false;
     pixels[5].color = BLUE;
 
-    // Print out the state of the neoPixelState array
+    // Visualization
     for (int i = 0; i < 8; ++i) {
         printf("Index %d: isOn=%s, isBright=%s, 0x%08x\n", 
                i, 
@@ -48,9 +46,7 @@ int main()
                pixels[i].color);
     }
     setLeds(pixels);
-    printf("anan");
-    // demonstration of 
-    
+
     /*
         Cleanup HAL
     */
