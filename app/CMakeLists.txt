@@ -11,5 +11,5 @@ target_link_libraries(find_the_dot LINK_PRIVATE hal)
 add_custom_command(TARGET find_the_dot POST_BUILD 
   COMMAND "${CMAKE_COMMAND}" -E copy 
      "$<TARGET_FILE:find_the_dot>"
-     "/home/owells/cmpt433/public/find_the_dot" 
+     "/$ENV{HOME}/cmpt433/public/find_the_dot" 
   COMMENT "Copying ARM executable to public NFS directory")
