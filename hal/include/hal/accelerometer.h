@@ -18,6 +18,8 @@
 
 #include "hal/utils.h"
 
+#define ACCEL_MAX 16384.0
+
 struct accel_val {
     int x;
     int y;
