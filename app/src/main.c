@@ -25,7 +25,7 @@ int main()
         Initialize HAL
     */
 
-    //initSegDisplay(&isRunning);
+    initSegDisplay(&isRunning);
     // joystick_init(&isRunning); // Instead of using GPIO we need to get it using PRU for faster access
     printf("Running main...\n"); //TODO remove
     accel_init();
@@ -106,10 +106,9 @@ int main()
         Cleanup HAL
     */
 
-   game_cleanup();
-   accel_cleanup();
-    //cleanupSegDisplay();
-    //joystick_shutdown();
+    game_cleanup();
+    accel_cleanup();
+    cleanupSegDisplay();
     joystick_shutdown();
 
     return 0;

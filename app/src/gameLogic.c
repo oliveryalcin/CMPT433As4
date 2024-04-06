@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdlib.h> // rand()
+#include <math.h> // fabs()
 
 #include "hal/segDisplay.h"
 #include "hal/joystick.h"
@@ -17,6 +18,7 @@
 //TODO I don't think they need to be Atomic, but maybe?
 static double gameX;
 static double gameY;
+static bool aimOverflow; //if user is aiming way above or way below, set to true
 
 // Thread stuff
 static pthread_t gameThread;
@@ -50,8 +52,17 @@ static int mapYtoLEDIndex(double cur_y) {
     int ledIndex = (int)scaled;
 
     // Ensure index within [0, 7]
-    if (ledIndex < 0) ledIndex = 0;
-    if (ledIndex > 7) ledIndex = 7;
+    if (ledIndex < 0) {
+        ledIndex = 0;
+        aimOverflow = true;
+    }
+    else if (ledIndex > 7){
+        ledIndex = 7;
+        aimOverflow = true;
+    } 
+    else{
+        aimOverflow = false;
+    }
 
     //TODO we will have to convert this to work with gameY value
     //TODO we have to add cases for the flashing when too far (see https://youtu.be/-4HGtYqb4II&t=2m)
@@ -88,6 +99,7 @@ static void* gameLoop() {
 
     // Create the LED object
     neoPixelState pixels = {0}; // Initialize all elements to 0 (false) by default
+    int score = 0;
 
     // Initialize LEDs // TODO ???
     for (int i = 0; i < STR_LEN; i++) {
@@ -96,9 +108,9 @@ static void* gameLoop() {
         // pixels[i].color = RED;
     }
 
-    while (isRunning) {
+    while (isRunning) { 
         // Main game loop here
-
+        bool gameOver = false; //unless user doesn't explicitly exit using J_Right, generate new game
         // Generate target coordinates
         refreshCoords();
 
@@ -111,52 +123,66 @@ static void* gameLoop() {
         // LEDs map to Y-AXIS value EXCEPT when close to target (ALL LEDs ON)
         // Flashing if user goes too far to the limit (-1.0 or 1.0)
 
-        for (int i = 0; i < 500; i++) {
-            uint32_t col = mapXtoLEDColor(accel_getXNorm());
-            int ledToChange = mapYtoLEDIndex(accel_getYNorm());
-            for (int ledNum = 0; ledNum < STR_LEN; ledNum++) {
-                if (ledNum == ledToChange) {
+        while (!gameOver) { // updated when user shoots correctly
+            double accelX = accel_getXNorm();
+            double accelY = accel_getYNorm();
+            uint32_t col = mapXtoLEDColor(accelX);
+            int ledToChange = mapYtoLEDIndex(accelY);
+            bool onTargetY = (fabs(gameY - accelY) < 0.05); // checks if gameY value of target is same as accelY if so true
+            bool onTargetX = (fabs(gameX - accelX) < 0.05); // checks if gameX value of target is same as accelX if so true
+            directions joystickDirection = getJoystickDirection(); 
+
+            // Set all LEDs to 0 initially
+            for (int ledNum = 0; ledNum < STR_LEN; ledNum++) { //if on target set all on, otherwise set to default value and overwrite necessary indexes later
+                if(onTargetY){
                     pixels[ledNum].color = col;
-                } else {
+                }
+                else{
                     pixels[ledNum].color = 0x00000000;
+                    
                 }
             }
-            // double cur_x = accel_getXNorm();
-            // double cur_y = accel_getYNorm();
-            // uint32_t col = setAllColorBrightness(NEO_LED_BASE, i);
-            // uint32_t col = setLedColor(0, i, i);
-            // printf("Setting to 0x%08X\n", col);
-            // pixels[0].color = col;
-            // pixels[1].color = col;
-            // pixels[2].color = col;
-            // pixels[3].color = col;
-            // pixels[4].color = col;
-            // pixels[5].color = col;
-            // pixels[6].color = col;
-            // pixels[7].color = col;
-            setLedSimple(pixels);
+            if(joystickDirection == RIGHT){
+                isRunning = false;
+                gameOver = true;
+            }
+            else if(joystickDirection == PUSH){
+                if(onTargetX && onTargetY){
+                    gameOver = true;
+                    score += 1;
+                    setSegDisplay(score);
+                    printf("\n%s\n", "on target, score should update");
+                }
+            }
+            
+            if(!onTargetY){ // case where not on target, seperated as doing all edge cases in loop not feasable
+                if (ledToChange == 0) { // edge case
+                    if(aimOverflow){ // edge case of edge case
+                        pixels[ledToChange].color = col;
+                    }
+                    else{
+                        pixels[ledToChange].color = brightenColor(col);
+                        pixels[ledToChange + 1].color = col;
+                    }
+                } else if (ledToChange == 7) { // edge case
+                    if(aimOverflow){ // edge case of edge case
+                        pixels[ledToChange].color = col;
+                    }
+                    else{
+                        pixels[ledToChange].color = brightenColor(col);
+                        pixels[ledToChange - 1].color = col;
+                    }
+
+                } else { // regular case
+                    pixels[ledToChange + 1].color = col;
+                    pixels[ledToChange].color = brightenColor(col);
+                    pixels[ledToChange - 1].color = col;
+                }
+            }
+
+            setLedSimple(pixels); //update values
             sleepForMs(0);
         }
-
-        // Original loop
-        /*if (cur_x > 0) {
-            pixels[0].color = RED;
-            pixels[0].isOn = true;
-            pixels[1].color = GREEN;
-            pixels[1].isOn = false;
-        } else {
-            pixels[0].isOn = false;
-            pixels[1].isOn = true;
-        }*/
-
-        // setLeds(pixels);
-
-        // printf("LED0 %d\t%d\t%d", getSingleColorBrightness(pixels[0].color, RED), getSingleColorBrightness(pixels[0].color, GREEN), getSingleColorBrightness(pixels[0].color, BLUE));
-        // printf("LED1 %d\t%d\t%d", getSingleColorBrightness(pixels[1].color, RED), getSingleColorBrightness(pixels[1].color, GREEN), getSingleColorBrightness(pixels[1].color, BLUE));
-
-        // struct accel_val acc = accel_get();
-        // printf("Checking accel %.1f, %.1f\n", cur_x, cur_y);
-        // printf("Generated %.1f, %.1f\n", gameX, gameY);
     }
 
     return NULL;
