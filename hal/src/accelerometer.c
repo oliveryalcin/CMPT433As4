@@ -14,6 +14,7 @@
 #include "hal/accelerometer.h"
 #include "hal/utils.h"
 #include "hal/i2c.h"
+#include "hal/neoPixel.h"
 
 #define I2C_DEVICE_ADDRESS 0x18
 
@@ -62,12 +63,21 @@ struct accel_val accel_get() {
     readI2cRegPtr(i2cFileDesc, OUT_X_L + 0x80, buff, 6);
 
     acc.x = convertAccelData(buff[1], buff[0]); // MSB 1, LSB 0
-    acc.y = convertAccelData(buff[3], buff[2]); // MSB 3, LSB 2
+    acc.y = -convertAccelData(buff[3], buff[2]); // MSB 3, LSB 2
     acc.z = convertAccelData(buff[5], buff[4]); // MSB 5, LSB 4
 
     return acc;
 }
 
+/* Get X value normalized to [-1.0,1.0] */
+double accel_getXNorm() {
+    return ((double)accel_get().x) / ACCEL_MAX;
+}
+
+/* Get Y value normalized to [-1.0,1.0] */
+double accel_getYNorm() {
+    return ((double)accel_get().y) / ACCEL_MAX;
+}
 
 void accel_cleanup() {
     close(i2cFileDesc);

@@ -18,7 +18,7 @@
 
 #include "hal/utils.h"
 
-#define ACCEL_MAX 16384.0
+#define ACCEL_MAX 16384.0 // for normalization
 
 struct accel_val {
     int x;
@@ -27,7 +27,9 @@ struct accel_val {
 };
 
 void accel_init();
-struct accel_val accel_get();
+struct accel_val accel_get(); // raw values
+double accel_getXNorm(); // normalized [-1.0,1.0]
+double accel_getYNorm(); // normalized [-1.0,1.0]
 void accel_cleanup();
 
 #endif // _ACCELEROMETER_H_

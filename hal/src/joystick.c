@@ -2,7 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include "stdbool.h"
+#include <stdbool.h>
+
+#include "hal/utils.h"
+#include "hal/neoPixel.h"
 
 static const char* gpio_value_file[] = {
     "/sys/class/gpio/gpio26/value", //up
@@ -14,11 +17,15 @@ static const char* gpio_value_file[] = {
 /*
     Private Static variables for managing state and configurations
 */
-static const char* command = "config-pin p8.14 gpio && config-pin p8.15 gpio && config-pin p8.16 gpio && config-pin p8.18 gpio";
+static char* command = "config-pin p8.14 gpio && config-pin p8.15 gpio && config-pin p8.16 gpio && config-pin p8.18 gpio";
+static char* command_pru = "config-pin p8.16 pruin && config-pin p8.15 pruin"; // for PRU shared mem
 static const int size = 2; // size of joystickInput buffer
 static directions joystickDirection = NA;
 static bool* isRunning; // keep track of shutdown state, initial value passed from MAIN thread during initialization
 
+/* For PRU shared memory */
+static volatile void *pPruBase;
+static volatile sharedColorStruct_t *pSharedPru0;
 
 /*
     pThread variables
@@ -29,17 +36,26 @@ static pthread_t joystickThreadPID;
 /*
     Static Function Declarations
 */
-static void run_command();
+// static void run_command();
 static directions joystick_getInput();
 static void* joystick_pollingThread();
-static void sleepForMs(long long delayInMs);
+static void* joystick_pollingThreadPRU();
+// static void sleepForMs(long long delayInMs);
 
 void joystick_init(bool *flag){
     isRunning = flag;
-    run_command();
+    // run_command();
+    runCommand(command);
     pthread_create(&joystickThreadPID, NULL, joystick_pollingThread, NULL);
 
 }
+
+void joystick_initPRU(bool *flag) {
+    isRunning = flag;
+    runCommand(command_pru);
+    pthread_create(&joystickThreadPID, NULL, joystick_pollingThreadPRU, NULL);
+}
+
 void joystick_shutdown(){
     // Join the polling thread to ensure it's terminated
     pthread_join(joystickThreadPID, NULL);
@@ -63,6 +79,28 @@ static void* joystick_pollingThread(){
 
     return NULL;
 }
+
+static void* joystick_pollingThreadPRU() {
+
+    // Config PRU shared mem
+    pPruBase = getPruMmapAddr();
+    pSharedPru0 = PRU0_MEM_FROM_BASE(pPruBase);
+
+    while (isRunning) {
+        // Read joystick input from PRU shared memory
+        pthread_mutex_lock(&pollingMutex);
+        {
+            // printf("joystick %d %d\n", pSharedPru0->joyRight, pSharedPru0->joyDown); //TODO delete
+            joystickDirection = pSharedPru0->joyRight ? RIGHT : pSharedPru0->joyDown ? DOWN : NA;
+        }
+        pthread_mutex_unlock(&pollingMutex);
+        sleepForMs(10);
+    }
+    
+    return NULL;
+}
+
+
 /*
     Threadsafe - getter function for currently pressed joystick value
 */
@@ -100,7 +138,10 @@ static directions joystick_getInput(){
     
     return NA;
 }
-static void run_command(){
+
+
+//TODO we can remove this since I changed it to use the one in utils
+/*static void run_command(){
     // Execute the shell command (output into pipe)
     FILE *pipe = popen(command, "r");
     // Ignore output of the command; but consume it
@@ -118,13 +159,5 @@ static void run_command(){
         printf(" command: %s\n", command);
         printf(" exit code: %d\n", exitCode);
     }
-}
-static void sleepForMs(long long delayInMs){ 
-    const long long NS_PER_MS = 1000 * 1000;
-    const long long NS_PER_SECOND = 1000000000;
-    long long delayNs = delayInMs * NS_PER_MS;
-    int seconds = delayNs / NS_PER_SECOND;
-    int nanoseconds = delayNs % NS_PER_SECOND;
-    struct timespec reqDelay = {seconds, nanoseconds};
-    nanosleep(&reqDelay, (struct timespec *) NULL);
-}
+}*/
+

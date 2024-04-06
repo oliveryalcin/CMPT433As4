@@ -18,6 +18,11 @@
 typedef struct {
     // Each color component is represented by a 32-bit unsigned integer (we have 8)
     uint32_t color[STR_LEN];
+
+    // Joystick info
+    bool joyRight;
+    bool joyDown;
+    
     //probably good to include some sort of shutdown flag value here and alignment before submission
     //uint32_t padding; // Adjust size as needed
 

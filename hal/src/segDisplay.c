@@ -7,7 +7,7 @@
 #include <linux/i2c-dev.h>
 #include "hal/segDisplay.h"
 #include <pthread.h>
-#include "stdbool.h"
+#include <stdbool.h>
 #include "hal/utils.h"
 
 
