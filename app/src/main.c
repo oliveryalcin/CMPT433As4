@@ -12,7 +12,7 @@
 #include "hal/neoPixel.h"
 #include "hal/accelerometer.h"
 #include "hal/utils.h" // TODO remove ??
-
+#include "hal/pwmBuzzer.h"
 #include "gameLogic.h"
 
 static bool isRunning = true; // used to keep track of all busy-wait thread loops
@@ -29,7 +29,7 @@ int main()
     joystick_initPRU(&isRunning);
 
     initSegDisplay(&isRunning);
-
+    initBuzzer();
     accel_init();
 
     //TODO buzzer init

@@ -40,6 +40,7 @@ static int toggleGPIOPin(const char* gpioPinDir, int state);
 static int firstDigit, secondDigit;
 static void* backgroundSegDisplayThread(); 
 static void run_command();
+static pthread_mutex_t pollingMutex = PTHREAD_MUTEX_INITIALIZER;
 
 typedef struct {
     const int outA; // upper triangle
@@ -172,10 +173,14 @@ void setSegDisplay(int number){
     if (number > 99) {
         number = 99;
     }
-        
-    secondDigit = number % 10;
-    number = number / 10;
-    firstDigit = number % 10;
+    pthread_mutex_lock(&pollingMutex);
+    {      
+        secondDigit = number % 10;
+        number = number / 10;
+        firstDigit = number % 10;
+    }
+    pthread_mutex_unlock(&pollingMutex);
+
 
 }
 static void* backgroundSegDisplayThread(){
@@ -186,16 +191,22 @@ static void* backgroundSegDisplayThread(){
     while (*isRunning) {
         
         turnOffBothDigits();
-        
-        writeI2cReg(i2cFileDesc, REG_OUTA, digit_hex_lookup_table[secondDigit].outA);
-        writeI2cReg(i2cFileDesc, REG_OUTB, digit_hex_lookup_table[secondDigit].outB);
+        pthread_mutex_unlock(&pollingMutex);
+        {
+            writeI2cReg(i2cFileDesc, REG_OUTA, digit_hex_lookup_table[secondDigit].outA);
+            writeI2cReg(i2cFileDesc, REG_OUTB, digit_hex_lookup_table[secondDigit].outB);
+        }
+        pthread_mutex_unlock(&pollingMutex);
         turnOnSecondDigit();
         sleepForMs(5);
 
         turnOffBothDigits();
-        
-        writeI2cReg(i2cFileDesc, REG_OUTA, digit_hex_lookup_table[firstDigit].outA);
-        writeI2cReg(i2cFileDesc, REG_OUTB, digit_hex_lookup_table[firstDigit].outB);
+        pthread_mutex_unlock(&pollingMutex);
+        {
+            writeI2cReg(i2cFileDesc, REG_OUTA, digit_hex_lookup_table[firstDigit].outA);
+            writeI2cReg(i2cFileDesc, REG_OUTB, digit_hex_lookup_table[firstDigit].outB);
+        }
+        pthread_mutex_unlock(&pollingMutex);
         turnOnFirstDigit();
 
         sleepForMs(5);
