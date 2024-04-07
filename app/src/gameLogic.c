@@ -160,23 +160,26 @@ static void* gameLoop() {
             }
             if(!onTargetY){ // case where not on target, seperated as doing all edge cases in loop not feasable
                 if (ledToChange == 0) { // edge case
-                    if(accelY > 0.5){ // edge case of edge case
+                    if(accelY > 0.80){
+                        //printf("%f",accelY);
                         pixels[ledToChange].color = col;
                     }
                     else{
                         pixels[ledToChange].color = brightenColor(col);
                         pixels[ledToChange + 1].color = col;
-                    }
-                } else if (ledToChange == 7) { // edge case
-                    if(accelY < -0.5){ // edge case of edge case
+                    }    
+                } 
+                else if (ledToChange == 7) { // edge case
+                    if(accelY < -0.85){
+                        //printf("%f",accelY);
                         pixels[ledToChange].color = col;
                     }
                     else{
                         pixels[ledToChange].color = brightenColor(col);
                         pixels[ledToChange - 1].color = col;
                     }
-
-                } else { // regular case
+                } 
+                else { // regular case
                     pixels[ledToChange + 1].color = col;
                     pixels[ledToChange].color = brightenColor(col);
                     pixels[ledToChange - 1].color = col;
