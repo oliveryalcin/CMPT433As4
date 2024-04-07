@@ -227,6 +227,8 @@ int cleanupSegDisplay(){
         perror("Error turning off SegDisplay GPIO pins");
         return -1;
     }
+    pthread_mutex_destroy(&pollingMutex);
+
 
 	return 0;
 }
