@@ -7,9 +7,9 @@
 static const char* command = "config-pin p9_22 pwm";
 //static bool* isRunning; // keep track of shutdown state, initial value passed from MAIN thread during initialization
 
-#define PWM0B_DUTY_CYCLE "/dev/bone/pwm/0/b/duty_cycle"
-#define PWM0B_PERIOD "/dev/bone/pwm/0/b/period"
-#define PWM0B_DUTY_ENABLE "/dev/bone/pwm/0/b/enable"
+#define PWM0B_DUTY_CYCLE "/dev/bone/pwm/0/a/duty_cycle"
+#define PWM0B_PERIOD "/dev/bone/pwm/0/a/period"
+#define PWM0B_DUTY_ENABLE "/dev/bone/pwm/0/a/enable"
 static void run_command();
 
 void initBuzzer(){
