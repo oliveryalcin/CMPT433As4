@@ -25,7 +25,7 @@ static volatile sharedColorStruct_t *pSharedPru0;
     Initializes pin for PRUOUT and initializes shared struct 
 */
 void initNeoPixel(){
-    runCommand("config-pin P8.11 pruout");
+    //runCommand("config-pin P8.11 pruout");
    // runCommand("cd /sys/class/remoteproc/remoteproc1/ && echo 'start' | sudo tee ./state");
     //runCommand("cd /mnt/remote/pru/pru-as4 && make && sudo make install_PRU0");
     pPruBase = getPruMmapAddr();

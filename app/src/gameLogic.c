@@ -128,9 +128,25 @@ static void* gameLoop() {
             double accelY = accel_getYNorm();
             uint32_t col = mapXtoLEDColor(accelX);
             int ledToChange = mapYtoLEDIndex(accelY);
-            bool onTargetY = (fabs(gameY - accelY) < 0.05); // checks if gameY value of target is same as accelY if so true
-            bool onTargetX = (fabs(gameX - accelX) < 0.05); // checks if gameX value of target is same as accelX if so true
+            bool onTargetY = (fabs(gameY - accelY) < 0.125); // checks if gameY value of target is same as accelY if so true
+           // bool onTargetX = (fabs(gameX - accelX) < 0.333); // checks if gameX value of target is same as accelX if so true
             directions joystickDirection = getJoystickDirection(); 
+      
+
+            /*
+                Joystick Input
+            */
+            if(joystickDirection == RIGHT){
+                isRunning = false;
+                gameOver = true; //basically used to iterate game loop
+            }
+            if(joystickDirection == DOWN){
+                if(onTargetY && (col == BLUE)){
+                    gameOver = true;
+                    score += 1;
+                    setSegDisplay(score);
+                }
+            }
 
             // Set all LEDs to 0 initially
             for (int ledNum = 0; ledNum < STR_LEN; ledNum++) { //if on target set all on, otherwise set to default value and overwrite necessary indexes later
@@ -142,22 +158,9 @@ static void* gameLoop() {
                     
                 }
             }
-            if(joystickDirection == RIGHT){
-                isRunning = false;
-                gameOver = true;
-            }
-            else if(joystickDirection == PUSH){
-                if(onTargetX && onTargetY){
-                    gameOver = true;
-                    score += 1;
-                    setSegDisplay(score);
-                    printf("\n%s\n", "on target, score should update");
-                }
-            }
-            
             if(!onTargetY){ // case where not on target, seperated as doing all edge cases in loop not feasable
                 if (ledToChange == 0) { // edge case
-                    if(aimOverflow){ // edge case of edge case
+                    if(accelY > 0.5){ // edge case of edge case
                         pixels[ledToChange].color = col;
                     }
                     else{
@@ -165,7 +168,7 @@ static void* gameLoop() {
                         pixels[ledToChange + 1].color = col;
                     }
                 } else if (ledToChange == 7) { // edge case
-                    if(aimOverflow){ // edge case of edge case
+                    if(accelY < -0.5){ // edge case of edge case
                         pixels[ledToChange].color = col;
                     }
                     else{

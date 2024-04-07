@@ -90,7 +90,7 @@ static void* joystick_pollingThreadPRU() {
         // Read joystick input from PRU shared memory
         pthread_mutex_lock(&pollingMutex);
         {
-            // printf("joystick %d %d\n", pSharedPru0->joyRight, pSharedPru0->joyDown); //TODO delete
+            //printf("joystick %d %d\n", pSharedPru0->joyRight, pSharedPru0->joyDown); //TODO delete
             joystickDirection = pSharedPru0->joyRight ? RIGHT : pSharedPru0->joyDown ? DOWN : NA;
         }
         pthread_mutex_unlock(&pollingMutex);
