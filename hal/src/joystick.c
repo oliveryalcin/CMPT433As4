@@ -90,7 +90,6 @@ static void* joystick_pollingThreadPRU() {
         // Read joystick input from PRU shared memory
         pthread_mutex_lock(&pollingMutex);
         {
-            //printf("joystick %d %d\n", pSharedPru0->joyRight, pSharedPru0->joyDown); //TODO delete
             joystickDirection = pSharedPru0->joyRight ? RIGHT : pSharedPru0->joyDown ? DOWN : NA;
         }
         pthread_mutex_unlock(&pollingMutex);
@@ -138,26 +137,3 @@ static directions joystick_getInput(){
     
     return NA;
 }
-
-
-//TODO we can remove this since I changed it to use the one in utils
-/*static void run_command(){
-    // Execute the shell command (output into pipe)
-    FILE *pipe = popen(command, "r");
-    // Ignore output of the command; but consume it
-    // so we don't get an error when closing the pipe.
-    char buffer[1000];
-    while (!feof(pipe) && !ferror(pipe)) {
-        if (fgets(buffer, sizeof(buffer), pipe) == NULL)
-            break;
-        //printf("--> %s", buffer); // Uncomment for debugging
-    }
-    // Get the exit code from the pipe; non-zero is an error:
-    int exitCode = WEXITSTATUS(pclose(pipe));
-    if (exitCode != 0) {
-        perror("Unable to execute command:");
-        printf(" command: %s\n", command);
-        printf(" exit code: %d\n", exitCode);
-    }
-}*/
-

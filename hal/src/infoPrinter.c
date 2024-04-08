@@ -78,7 +78,7 @@ static void* printerLoop() {
         printf("Joystick\t\t%s\n", JOY_DIRECTIONS[getJoystickDirection()]);
 
         // Print SegDisplay data
-        printf("SegDisplay\t\t%d %d\n", getSegDisplayFirst(), getSegDisplaySecond()); //TODO
+        printf("SegDisplay\t\t%d %d\n", getSegDisplayFirst(), getSegDisplaySecond());
 
         // Print NeoPixel data
         printLedDetails();

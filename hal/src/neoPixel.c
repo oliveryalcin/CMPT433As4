@@ -51,7 +51,7 @@ uint32_t brightenColor(ledColors color) {
 uint32_t setSingleColorBrightness(uint32_t current, ledColors color, int brightness) {
 
     if (brightness < 0 || brightness > 255) {
-        printf("ERROR: Brightness not in range 0-255\n"); //TODO delete?
+        printf("ERROR: Brightness not in range 0-255\n");
         return current;
     }
 
@@ -118,7 +118,7 @@ uint32_t crementSingleColorBrightness(uint32_t current, ledColors color, int amo
 //TODO needs to be tested
 uint32_t setAllColorBrightness(uint32_t current, int brightness) {
     if (brightness < 0 || brightness > 255) {
-        printf("ERROR: Brightness not in range 0-255\n"); //TODO delete?
+        printf("ERROR: Brightness not in range 0-255\n");
         return current;
     }
 
