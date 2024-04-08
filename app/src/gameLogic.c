@@ -134,35 +134,33 @@ static void adjustLEDsBasedOnTargetDistance(double accelY,
                                             neoPixelState pixels,
                                             uint32_t col) {
   
-  // Calculate the distance from target and direction
+  // Distance from target
   double dist = fabs(gameY - accelY);
   bool isMovingTowardsNegative = accelY < gameY;
 
-  // Imaginary extension by one LED in both directions
+  // Extend by one LED in both directions
   double extendedStripLength = STR_LEN + 2;
 
   // Determine the conceptual main LED index based on distance and direction
   double conceptualMainLedIndex;
   if (isMovingTowardsNegative) {
-    // Calculate the index as if moving towards the negative end of the strip
     conceptualMainLedIndex = ((dist/0.94) * (extendedStripLength / 2.0)) + (STR_LEN / 2.0);
   } else {
-    // Calculate the index as if moving towards the positive end of the strip
     conceptualMainLedIndex = (STR_LEN / 2.0) - ((dist / 0.94) * (extendedStripLength / 2.0)) + 1;
   }
 
-  // Adjust the index for the actual LED strip, considering the imaginary LEDs
+  // Consider extra LEDs
   int mainLedIndex = (int)round(conceptualMainLedIndex)-1;
   mainLedIndex = mainLedIndex < 0 ? -1 : mainLedIndex;
   mainLedIndex = mainLedIndex >= STR_LEN ? STR_LEN : mainLedIndex;
 
-  // Illumination logic based on the calculated main LED index
+  // LED logic
   for (int i = 0; i < STR_LEN; i++) {
     if (i == mainLedIndex) {
-      pixels[i].color = col;  // Main LED on
+      pixels[i].color = col;  // main ON
       pixels[i].color = brightenColor(col);
     } else {
-      pixels[i].color = NEO_LED_BASE;  // Other LEDs off or dim
+      pixels[i].color = NEO_LED_BASE;  // all others OFF
     }
 
     // Making sure we don't change a non-existent LED
