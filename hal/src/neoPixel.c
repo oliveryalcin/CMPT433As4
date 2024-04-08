@@ -177,4 +177,5 @@ void neopixel_cleanup() {
     for (int i = 0; i < STR_LEN; i++) {
         pSharedPru0->color[i] = NEO_LED_BASE;
     }
+    freePruMmapAddr(pPruBase);
 }
