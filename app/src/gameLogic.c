@@ -101,7 +101,7 @@ static void* gameLoop() {
                 } else {
                     buzzerSetTone(MISS);
                 }
-                sleepForMs(250);
+                //sleepForMs(150);
                 continue;
             }
 
@@ -122,7 +122,7 @@ static void* gameLoop() {
             }
 
             setLedSimple(pixels); //update values
-            sleepForMs(0);
+           // sleepForMs(0);
         }
     }
 

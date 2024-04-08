@@ -144,11 +144,11 @@ static void* buzzerLoop() {
             case NONE:
                 break;
             case HIT:
-                printf("Playing HIT\n");
+                //printf("Playing HIT\n");
                 playHitSound();
                 break;
             case MISS:
-                printf("Playing MISS\n");
+                //printf("Playing MISS\n");
                 playMissSound();
                 break;
             default:

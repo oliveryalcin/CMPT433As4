@@ -35,7 +35,7 @@ int main()
     /* 
     Initialize game logic
     */
-    printer_init(&isRunning);
+    //printer_init(&isRunning);
     game_init(&isRunning);
     shutdown_init(&isRunning);
 
