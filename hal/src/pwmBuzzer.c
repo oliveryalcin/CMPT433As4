@@ -160,6 +160,10 @@ static void* buzzerLoop() {
 }
 
 void buzzerCleanup() {
+    
+    // Turn off all sound
+    setBuzzer(0, 1000000);
+
     // Join the thread
     pthread_join(buzzerThread, NULL);
 }
