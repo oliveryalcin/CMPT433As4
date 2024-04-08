@@ -11,66 +11,33 @@
 #include "hal/neoPixel.h"
 #include "hal/accelerometer.h"
 #include "hal/utils.h" // sleepForMs()
+#include "hal/shutdown.h"
+#include "hal/pwmBuzzer.h"
 
 #include "gameLogic.h"
 
 /* Variables */
-//TODO I don't think they need to be Atomic, but maybe?
 static double gameX;
 static double gameY;
-static bool aimOverflow; //if user is aiming way above or way below, set to true
+static int globalScore;
 
 // Thread stuff
 static pthread_t gameThread;
 static void* gameLoop();
 static bool* isRunning; // keep track of shutdown state, initial value passed from MAIN thread during initialization
-static int mapYtoLEDIndex(double cur_y);
 static ledColors mapXtoLEDColor(double cur_x);
 static double generateNum();
 static void refreshCoords();
+static void adjustLEDsBasedOnTargetDistance(double accelY, neoPixelState pixels, uint32_t col);
 
-void game_init(bool *flag) {
+void game_init(bool *running) {
 
     // Pass in the flag to later signal shutdown
-    isRunning = flag;
+    isRunning = running;
 
     printf("Initializing game...\n");
     pthread_create(&gameThread, NULL, &gameLoop, NULL);
 
-}
-
-// Function to map Y accelerometer value to an LED index
-static int mapYtoLEDIndex(double cur_y) {
-
-    // Normalize Y to [0.0, 1.0]
-    double normalized = (cur_y + 1.0) / 2.0;
-
-    // Scale to [0, 7]
-    double scaled = normalized * 7.0;
-
-    // Get LED index
-    int ledIndex = (int)scaled;
-
-    // Ensure index within [0, 7]
-    if (ledIndex < 0) {
-        ledIndex = 0;
-        aimOverflow = true;
-    }
-    else if (ledIndex > 7){
-        ledIndex = 7;
-        aimOverflow = true;
-    } 
-    else{
-        aimOverflow = false;
-    }
-
-    //TODO we will have to convert this to work with gameY value
-    //TODO we have to add cases for the flashing when too far (see https://youtu.be/-4HGtYqb4II&t=2m)
-    
-    //TODO I just noticed, the mapping is off. Top LED is getting illuminated with Y at -0.71 instead of -0.1
-
-    // Reverse it to match Brian's video
-    return 7-ledIndex;
 }
 
 // Function to map X to the appropriate color
@@ -80,17 +47,18 @@ static ledColors mapXtoLEDColor(double cur_x) {
     // If the point is to the left (i.e., need to rotate it left), use a red colour.
     // If the point is to the right (i.e., need to rotate it right), use a green colour.
     // If the point is centred left-right, use a blue colour.
-
-    // We will start by mapping to the normal range
-    //TODO we will have to convert this to work with gameX
     
-    if (cur_x <= -0.1) {
-        return RED;
-    } else if (cur_x >= 0.1) {
+    if (fabs(gameX - cur_x) <= TARGET_RANGE) {
+        return BLUE;
+    } else if ((gameX - cur_x) > 0.0) {
         return GREEN;
     } else {
-        return BLUE;
+        return RED;
     }
+}
+
+int getScore() {
+    return globalScore;
 }
 
 static void* gameLoop() {
@@ -99,91 +67,58 @@ static void* gameLoop() {
 
     // Create the LED object
     neoPixelState pixels = {0}; // Initialize all elements to 0 (false) by default
-    int score = 0;
+    globalScore = 0;
 
-    // Initialize LEDs // TODO ???
-    for (int i = 0; i < STR_LEN; i++) {
-        // pixels[i].isOn = true;
-        pixels[i].isBright = true;
-        // pixels[i].color = RED;
-    }
-
-    while (isRunning) { 
+    while (*isRunning) { 
         // Main game loop here
+        
         bool gameOver = false; //unless user doesn't explicitly exit using J_Right, generate new game
+        
         // Generate target coordinates
         refreshCoords();
-
-        // X-AXIS
-        // RED -> rotate LEFT
-        // GREEN -> rotate RIGHT
-        // BLUE -> on target
-
-        // Y-AXIS
-        // LEDs map to Y-AXIS value EXCEPT when close to target (ALL LEDs ON)
-        // Flashing if user goes too far to the limit (-1.0 or 1.0)
 
         while (!gameOver) { // updated when user shoots correctly
             double accelX = accel_getXNorm();
             double accelY = accel_getYNorm();
             uint32_t col = mapXtoLEDColor(accelX);
-            int ledToChange = mapYtoLEDIndex(accelY);
-            bool onTargetY = (fabs(gameY - accelY) < 0.125); // checks if gameY value of target is same as accelY if so true
-           // bool onTargetX = (fabs(gameX - accelX) < 0.333); // checks if gameX value of target is same as accelX if so true
+            bool onTargetY = (fabs(gameY - accelY) <= TARGET_RANGE);
+            // bool onTargetX = (fabs(gameX - accelX) <= TARGET_RANGE);
             directions joystickDirection = getJoystickDirection(); 
       
-
             /*
                 Joystick Input
             */
-            if(joystickDirection == RIGHT){
-                isRunning = false;
-                gameOver = true; //basically used to iterate game loop
+            if(joystickDirection == RIGHT) {
+                shutdown_signal();
+                break;
             }
             if(joystickDirection == DOWN){
                 if(onTargetY && (col == BLUE)){
+                    buzzerSetTone(HIT);
                     gameOver = true;
-                    score += 1;
-                    setSegDisplay(score);
+                    globalScore += 1;
+                    setSegDisplay(globalScore);
+                } else {
+                    buzzerSetTone(MISS);
                 }
+                sleepForMs(250);
+                continue;
             }
 
             // Set all LEDs to 0 initially
             for (int ledNum = 0; ledNum < STR_LEN; ledNum++) { //if on target set all on, otherwise set to default value and overwrite necessary indexes later
                 if(onTargetY){
-                    pixels[ledNum].color = col;
+                    pixels[ledNum].color = brightenColor(col);
                 }
                 else{
                     pixels[ledNum].color = 0x00000000;
-                    
                 }
             }
-            if(!onTargetY){ // case where not on target, seperated as doing all edge cases in loop not feasable
-                if (ledToChange == 0) { // edge case
-                    if(accelY > 0.80){
-                        //printf("%f",accelY);
-                        pixels[ledToChange].color = col;
-                    }
-                    else{
-                        pixels[ledToChange].color = brightenColor(col);
-                        pixels[ledToChange + 1].color = col;
-                    }    
-                } 
-                else if (ledToChange == 7) { // edge case
-                    if(accelY < -0.85){
-                        //printf("%f",accelY);
-                        pixels[ledToChange].color = col;
-                    }
-                    else{
-                        pixels[ledToChange].color = brightenColor(col);
-                        pixels[ledToChange - 1].color = col;
-                    }
-                } 
-                else { // regular case
-                    pixels[ledToChange + 1].color = col;
-                    pixels[ledToChange].color = brightenColor(col);
-                    pixels[ledToChange - 1].color = col;
-                }
+            if(!onTargetY){
+
+                // So we are assuming we're NOT on target here
+                // LEDs will be lit up based on distance from target
+                adjustLEDsBasedOnTargetDistance(accelY, pixels, col);
             }
 
             setLedSimple(pixels); //update values
@@ -193,6 +128,51 @@ static void* gameLoop() {
 
     return NULL;
 
+}
+
+static void adjustLEDsBasedOnTargetDistance(double accelY,
+                                            neoPixelState pixels,
+                                            uint32_t col) {
+  
+  // Calculate the distance from target and direction
+  double dist = fabs(gameY - accelY);
+  bool isMovingTowardsNegative = accelY < gameY;
+
+  // Imaginary extension by one LED in both directions
+  double extendedStripLength = STR_LEN + 2;
+
+  // Determine the conceptual main LED index based on distance and direction
+  double conceptualMainLedIndex;
+  if (isMovingTowardsNegative) {
+    // Calculate the index as if moving towards the negative end of the strip
+    conceptualMainLedIndex = ((dist/0.94) * (extendedStripLength / 2.0)) + (STR_LEN / 2.0);
+  } else {
+    // Calculate the index as if moving towards the positive end of the strip
+    conceptualMainLedIndex = (STR_LEN / 2.0) - ((dist / 0.94) * (extendedStripLength / 2.0)) + 1;
+  }
+
+  // Adjust the index for the actual LED strip, considering the imaginary LEDs
+  int mainLedIndex = (int)round(conceptualMainLedIndex)-1;
+  mainLedIndex = mainLedIndex < 0 ? -1 : mainLedIndex;
+  mainLedIndex = mainLedIndex >= STR_LEN ? STR_LEN : mainLedIndex;
+
+  // Illumination logic based on the calculated main LED index
+  for (int i = 0; i < STR_LEN; i++) {
+    if (i == mainLedIndex) {
+      pixels[i].color = col;  // Main LED on
+      pixels[i].color = brightenColor(col);
+    } else {
+      pixels[i].color = NEO_LED_BASE;  // Other LEDs off or dim
+    }
+
+    // Making sure we don't change a non-existent LED
+    if (mainLedIndex-1 >= 0) {
+      pixels[mainLedIndex-1].color = col;  // One LED before main LED on
+    }
+    if (mainLedIndex+1 <= STR_LEN-1) {
+      pixels[mainLedIndex+1].color = col;  // One LED after main LED on
+    }
+  }
 }
 
 /* Cleanup function */
@@ -207,6 +187,18 @@ void game_cleanup() {
 static void refreshCoords() {
     gameX = generateNum();
     gameY = generateNum();
+}
+
+double getGameX() {
+    return gameX;
+}
+
+double getGameY() {
+    return gameY;
+}
+
+bool getOnTarget() {
+    return (fabs(gameY - accel_getYNorm()) < TARGET_RANGE) && (fabs(gameX - accel_getXNorm()) < TARGET_RANGE);
 }
 
 /* This is generating our random num [-0.5, 0.5] for target */

@@ -8,9 +8,9 @@
 #define NEO_LED_BASE 0x00000000
 
 typedef enum {
-    RED = 0x000f0000, // Red
-    GREEN = 0x0f000000, // Green
-    BLUE = 0x00000f00, // Blue
+    RED = 0x00010000, // Red
+    GREEN = 0x01000000, // Green
+    BLUE = 0x00000100, // Blue
 } ledColors;
 
 typedef struct {
@@ -32,6 +32,8 @@ uint32_t setLedColor(int red, int green, int blue);
 
 void setLeds(neoPixelState positions);
 void setLedSimple(neoPixelState positions);
+
+void neopixel_cleanup();
 
 
 #endif

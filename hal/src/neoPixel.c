@@ -37,11 +37,11 @@ uint32_t brightenColor(ledColors color) {
     
     switch (color) {
         case RED:
-            return 0x00ff0000; // Red Bright
+            return 0x000f0000; // Red Bright
         case GREEN:
-            return 0xff000000; // Green Bright
+            return 0x0f000000; // Green Bright
         case BLUE:
-            return 0x0000ff00; // Blue Bright
+            return 0x00000f00; // Blue Bright
         default:
             return 0x00000000;
     }
@@ -170,5 +170,11 @@ void setLeds(neoPixelState positions) {
 void setLedSimple(neoPixelState positions) {
     for (int i = 0; i < STR_LEN; i++) {
         pSharedPru0->color[i] = positions[i].color;
+    }
+}
+
+void neopixel_cleanup() {
+    for (int i = 0; i < STR_LEN; i++) {
+        pSharedPru0->color[i] = NEO_LED_BASE;
     }
 }

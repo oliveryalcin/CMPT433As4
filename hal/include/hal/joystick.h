@@ -11,8 +11,8 @@ typedef enum {
     NA
 } directions;
 
-void joystick_init(bool *flag);
-void joystick_initPRU(bool *flag);
+void joystick_init(bool *running);
+void joystick_initPRU(bool *running);
 directions getJoystickDirection();
 void joystick_shutdown(void);
 

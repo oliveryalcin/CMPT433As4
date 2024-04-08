@@ -42,16 +42,16 @@ static void* joystick_pollingThread();
 static void* joystick_pollingThreadPRU();
 // static void sleepForMs(long long delayInMs);
 
-void joystick_init(bool *flag){
-    isRunning = flag;
+void joystick_init(bool *running){
+    isRunning = running;
     // run_command();
     runCommand(command);
     pthread_create(&joystickThreadPID, NULL, joystick_pollingThread, NULL);
 
 }
 
-void joystick_initPRU(bool *flag) {
-    isRunning = flag;
+void joystick_initPRU(bool *running) {
+    isRunning = running;
     runCommand(command_pru);
     pthread_create(&joystickThreadPID, NULL, joystick_pollingThreadPRU, NULL);
 }
@@ -65,7 +65,7 @@ void joystick_shutdown(){
 
 static void* joystick_pollingThread(){
 
-    while (isRunning)
+    while (*isRunning)
     {
         // Read joystick input
         pthread_mutex_lock(&pollingMutex);
@@ -86,7 +86,7 @@ static void* joystick_pollingThreadPRU() {
     pPruBase = getPruMmapAddr();
     pSharedPru0 = PRU0_MEM_FROM_BASE(pPruBase);
 
-    while (isRunning) {
+    while (*isRunning) {
         // Read joystick input from PRU shared memory
         pthread_mutex_lock(&pollingMutex);
         {

@@ -5,5 +5,7 @@
 int cleanupSegDisplay();
 void initSegDisplay(bool* isRunning);
 void setSegDisplay(int someNumberVal);
+int getSegDisplayFirst();
+int getSegDisplaySecond();
 
 #endif

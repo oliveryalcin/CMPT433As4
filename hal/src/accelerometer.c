@@ -31,7 +31,8 @@
 #define OUT_Z_L 0x2C
 #define OUT_Z_H 0x2D
 
-static int i2cFileDesc;
+static _Atomic int i2cFileDesc;
+static struct accel_val global_acc;
 
 void accel_init() {
     runCommand(CFG_P9_17);
@@ -56,17 +57,34 @@ static int16_t convertAccelData(unsigned char msb, unsigned char lsb) {
 
 /* Return accelerometer data in struct */
 struct accel_val accel_get() {
-    
-    unsigned char buff[6];
-    struct accel_val acc;
+  unsigned char buff[6];
 
-    readI2cRegPtr(i2cFileDesc, OUT_X_L + 0x80, buff, 6);
+  // Create temp struct
+  struct accel_val temp_acc;
 
-    acc.x = convertAccelData(buff[1], buff[0]); // MSB 1, LSB 0
-    acc.y = -convertAccelData(buff[3], buff[2]); // MSB 3, LSB 2
-    acc.z = convertAccelData(buff[5], buff[4]); // MSB 5, LSB 4
+  readI2cRegPtr(i2cFileDesc, OUT_X_L + 0x80, buff, 6);
 
-    return acc;
+  // Read info into temp struct
+  temp_acc.x = convertAccelData(buff[1], buff[0]);   // MSB 1, LSB 0
+  temp_acc.y = -convertAccelData(buff[3], buff[2]);  // MSB 3, LSB 2
+  temp_acc.z = convertAccelData(buff[5], buff[4]);   // MSB 5, LSB 4
+
+  // Check if the read data is all zeros and if global_acc has any non-zero
+  // value
+  if (!((temp_acc.x == 0 && temp_acc.y == 0 && temp_acc.z == 0) &&
+        (global_acc.x != 0 || global_acc.y != 0 || global_acc.z != 0))) {
+    // If not all zeros or global_acc is all zeros, update the global_acc with
+    // new data
+    global_acc.x = temp_acc.x;
+    global_acc.y = temp_acc.y;
+    global_acc.z = temp_acc.z;
+  }
+
+  //   printf("Buffer contents: 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X\n",
+  //  buff[0], buff[1], buff[2], buff[3], buff[4], buff[5]);
+  //   printf("\tAccel values: %d %d %d\n", acc.x, acc.y, acc.z);
+
+  return global_acc;
 }
 
 /* Get X value normalized to [-1.0,1.0] */

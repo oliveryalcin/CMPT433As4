@@ -131,8 +131,8 @@ static int configureGPIODirection(){
     fclose(fPin44);
     return 0;
 }
-void initSegDisplay(bool *flag){
-	isRunning = flag;
+void initSegDisplay(bool *running){
+	isRunning = running;
     run_command(); 
 //• Configure both pins on the microprocessor for output through GPIO (see other guide).
 // If GPIO pins not yet exported, then export them (avoid re-exporting pins):
@@ -183,6 +183,17 @@ void setSegDisplay(int number){
 
 
 }
+
+int getSegDisplayFirst() {
+    int first = firstDigit;
+    return first;
+}
+
+int getSegDisplaySecond() {
+    int second = secondDigit;
+    return second;
+}
+
 static void* backgroundSegDisplayThread(){
     int i2cFileDesc = initI2cBus(I2CDRV_LINUX_BUS1, I2C_DEVICE_ADDRESS);
     writeI2cReg(i2cFileDesc, REG_DIRA, 0x00);
@@ -229,6 +240,8 @@ int cleanupSegDisplay(){
     }
     pthread_mutex_destroy(&pollingMutex);
 
+    // Clear display
+    turnOffBothDigits();
 
 	return 0;
 }

@@ -75,7 +75,7 @@ void readI2cRegPtr(int i2cFileDesc, unsigned char regAddr, unsigned char *buff, 
     if (res != sizeof(regAddr))
     {
         perror("I2C: Unable to write to i2c register.");
-        exit(1);
+        exit(-1);
     }
     // Now read the value and return it
     // char value = 0;
@@ -83,6 +83,6 @@ void readI2cRegPtr(int i2cFileDesc, unsigned char regAddr, unsigned char *buff, 
     if (res != len)
     {
         perror("I2C: Unable to read from i2c register");
-        exit(1);
+        exit(-1);
     }
 }
