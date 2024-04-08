@@ -102,7 +102,7 @@ static void* gameLoop() {
                     buzzerSetTone(MISS);
                 }
                 //sleepForMs(150);
-                continue;
+                // continue;
             }
 
             // Set all LEDs to 0 initially
