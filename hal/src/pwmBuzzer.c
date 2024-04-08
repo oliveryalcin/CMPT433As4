@@ -45,6 +45,8 @@ void initBuzzer(bool* running) {
     }
     // Close file
     fclose(fEnable);
+    fclose(fDutyCycle);
+    fclose(fPeriod);
 
     // Begin buzzer loop thread
     pthread_create(&buzzerThread, NULL, &buzzerLoop, NULL);
@@ -160,7 +162,7 @@ static void* buzzerLoop() {
 }
 
 void buzzerCleanup() {
-    
+
     // Turn off all sound
     setBuzzer(0, 1000000);
 
