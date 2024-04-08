@@ -74,7 +74,7 @@ void main(void) {
   }
 
   // End of program
-  __halt();
+  // __halt();
 }
 
 static void ledLoop() {
