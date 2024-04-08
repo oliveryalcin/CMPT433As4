@@ -8,7 +8,7 @@ add_executable(find_the_dot ${MY_SOURCES})
 # Make use of the HAL library
 # TODO note: m was added for 'sqrt' function
 # We can maybe remove if not necessary
-target_link_libraries(find_the_dot LINK_PRIVATE hal m)
+target_link_libraries(find_the_dot LINK_PRIVATE hal m Threads::Threads)
 
 # Copy executable to final location (change `find_the_dot` to project name as needed)
 add_custom_command(TARGET find_the_dot POST_BUILD 

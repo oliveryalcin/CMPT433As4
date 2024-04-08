@@ -2,6 +2,8 @@
 cmake_minimum_required(VERSION 3.18)
 project(find_the_dot VERSION 1.0 DESCRIPTION "Assignment 4" LANGUAGES C)
 
+find_package(Threads REQUIRED)
+
 # Compiler options (inherited by sub-folders)
 set(CMAKE_C_STANDARD 11)
 add_compile_options(-Wall -Werror -Wpedantic -Wextra)
